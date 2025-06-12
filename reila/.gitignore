@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+
+# Virtual environments
+venv/
+.env
+
+# Jupyter (if used)
+.ipynb_checkpoints/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Hugging Face model cache (optional)
+**/hf-cache/
+**/.cache/
