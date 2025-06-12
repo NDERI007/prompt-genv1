@@ -1,8 +1,10 @@
 import os
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
+import gc
 from dotenv import load_dotenv
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from flask_cors import CORS
 import torch
 import re
 import requests
@@ -23,6 +25,8 @@ def sanitize_prompt(text: str) -> str:
 
 
 app = Flask(__name__)
+CORS(app)
+
 
 # Define local cache directory (optional, but good practice)
 CACHE_DIR = os.path.expanduser("~/.cache/hf_models/flan-t5-base")
@@ -76,6 +80,10 @@ def rewrite_prompt():
             top_k=50,           # limits sample pool size
             top_p=0.95          # nucleus sampling for diversity
         )
+        #clean cache after generation
+        torch.cuda.empty_cache()
+        #force garbage collection
+        gc.collect
 
         variations = [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
 
@@ -103,4 +111,6 @@ def log_favorite():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=False)
+     print("🚀 Flask server is starting...")
+     print("✅ Listening at: http://localhost:5000")
+     app.run(host="0.0.0.0", port=5000, debug=False)
