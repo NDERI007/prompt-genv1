@@ -56,13 +56,12 @@ def rewrite_prompt():
     data = request.get_json()
     user_prompt = data.get("prompt", "").strip()
 
-    print("Received prompt:", user_prompt)
-    
     if not user_prompt:
         return jsonify({"error": "Missing 'prompt' field"}), 400
     
 
     sanitized_prompt = sanitize_prompt(user_prompt)
+    
     if len(sanitized_prompt) < 3:
         return jsonify({"error": "Prompt too short after cleaning"}), 400
 
@@ -76,10 +75,9 @@ def rewrite_prompt():
             inputs.input_ids,
             max_new_tokens=40,
             num_return_sequences=3,
-            do_sample=True,
-            temperature=0.85,
-            top_k=50,           # limits sample pool size
-            top_p=0.95          # nucleus sampling for diversity
+            do_sample=False, #Greedy decoding: always picks most probable next token (boring but stable)..
+            num_beams = 3, #keeps top-N likely sequences, expands them in parallel. Balances quality and consistency.
+           early_stopping=True
         )
         
         #force garbage collection
