@@ -1,13 +1,14 @@
 import os
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
+from markupsafe import escape
 import gc
 from dotenv import load_dotenv
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from flask_cors import CORS
 import torch
 import re
-import requests
+
 from html import escape
 
 load_dotenv()
@@ -25,7 +26,9 @@ def sanitize_prompt(text: str) -> str:
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app )
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+
 
 
 # Define local cache directory (optional, but good practice)
@@ -46,10 +49,15 @@ model = AutoModelForSeq2SeqLM.from_pretrained(
 
 model.eval()  # Important: model runs in inference mode
 
-@app.route("/rewrite", methods=["POST"])
+@app.route("/rewrite", methods=["POST", "OPTIONS"])
 def rewrite_prompt():
-    data = request.json
-    user_prompt = data.get("prompt", "")
+    if request.method == "OPTIONS":
+        return '', 200  # CORS preflight
+    data = request.get_json()
+    user_prompt = data.get("prompt", "").strip()
+
+    print("Received prompt:", user_prompt)
+    
     if not user_prompt:
         return jsonify({"error": "Missing 'prompt' field"}), 400
     
@@ -59,13 +67,6 @@ def rewrite_prompt():
         return jsonify({"error": "Prompt too short after cleaning"}), 400
 
     formatted_prompt = f"Rephrase this instruction: {sanitized_prompt}"
-
-
-    response = requests.post("http://127.0.0.1:5000/rewrite", json={
-     "prompt": "Write a short poem about the sea."
-      })
-
-    print(response.json())
 
     # Inference with no gradient tracking (saves memory)
     with torch.no_grad():
@@ -80,8 +81,7 @@ def rewrite_prompt():
             top_k=50,           # limits sample pool size
             top_p=0.95          # nucleus sampling for diversity
         )
-        #clean cache after generation
-        torch.cuda.empty_cache()
+        
         #force garbage collection
         gc.collect
 
@@ -113,4 +113,4 @@ def log_favorite():
 if __name__ == "__main__":
      print("🚀 Flask server is starting...")
      print("✅ Listening at: http://localhost:5000")
-     app.run(host="0.0.0.0", port=5000, debug=False)
+     app.run(host="0.0.0.0", port=5000, debug=True)

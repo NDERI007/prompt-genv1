@@ -5,9 +5,9 @@ type FavoritePayload = {
   prompt: string;
   favorite: string;
 };
-export const rewritePrompt = async (_prompt: string): Promise<string[]> => {
+export const rewritePrompt = async (prompt: string): Promise<string[]> => {
   const response = await axios.post(`${API_BASE}/rewrite`, {
-    _prompt,
+    prompt,
   });
   return response.data.variations; // this is a string[]
 };
