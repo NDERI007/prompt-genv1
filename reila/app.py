@@ -99,7 +99,7 @@ def log_favorite():
     try:
         supabase.table("prompt_logs").insert({
             "prompt": prompt,
-            "variations": [favorite]
+            "favorite": [favorite]
         }).execute()
     except Exception as e:
         print(f"Supabase logging failed: {e}")

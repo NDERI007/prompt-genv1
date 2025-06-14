@@ -28,7 +28,7 @@ export function PromptResult({ prompt, variations }: _prompt) {
           <button
             onClick={() => handleFavorite(text, i)}
             disabled={favoritedIndex === i}
-            className={`absolute top-2 right-2 ${
+            className={`absolute cursor-pointer top-2 right-2 ${
               favoritedIndex === i ? "text-yellow-500" : "text-gray-400"
             }`}
           >
